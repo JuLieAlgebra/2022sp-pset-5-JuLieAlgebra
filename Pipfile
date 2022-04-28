@@ -6,19 +6,16 @@ verify_ssl = true
 [dev-packages]
 pytest = "*"
 pytest-cov = "*"
+#pytest-runner = "*"
 
 [packages]
-awscli = "*"
-canvasapi = "*"
-environs = "*"
-gitpython = "*"
-pandas = "*"
-openpyxl = "*"
-pyarrow = "*"
-fastparquet = "*"
-
 csci-utils = {editable = true,git = "https://github.com/csci-e-29/2022sp-csci-utils-JuLieAlgebra"}
-
+dask = {extras = ["dataframe"], version = "*"}
+fastparquet = "*"
+s3fs = "*"
+luigi = "*"
+# for some reason, awscli breaks the pipenv.....
+# awscli = "*" # is it necessary...?
 
 [requires]
 python_version = "3.8"

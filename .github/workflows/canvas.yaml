@@ -37,7 +37,7 @@ jobs:
         aws-region: us-east-2
     - name: Test with pytest
       run: |
-        make data && pipenv run pytest --cov-report xml --cov-report term
+        pipenv run pytest --cov-report xml --cov-report term
     - name: CodeClimate Coverage
       uses: paambaati/codeclimate-action@v2.7.5
       env:
@@ -78,6 +78,6 @@ jobs:
         CANVAS_URL: https://canvas.harvard.edu
         CSCI_SALT: ${{ secrets.CSCI_SALT }}
       run: |
-        make data && pipenv run python submit.py
+        pipenv run python -m pset_5
 
 
