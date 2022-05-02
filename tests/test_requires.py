@@ -2,7 +2,7 @@ from unittest import TestCase
 from csci_utils_starters.csci_utils_luigi_task import Requirement, Requires
 
 # from csci_utils_starters.csci_utils_luigi_dask_target import *
-from pset_5.tasks import BySomething, CleanedReviews, YelpReviews
+from pset_5.tasks import BySomething, CleanedReviews, YelpReviews, DownloadReviews
 
 
 class RequireTests(TestCase):
@@ -16,4 +16,4 @@ class RequireTests(TestCase):
 
     def test_yelp_requires(self):
         cl = CleanedReviews()
-        assert type(cl.requires()["other"]) == YelpReviews
+        assert type(cl.requires()["other"]) == DownloadReviews

@@ -1,5 +1,7 @@
 """Luigi targets for dask collections"""
 
+import os
+
 from dask import delayed
 from dask.bytes.core import get_fs_token_paths
 from dask.dataframe import read_csv, read_parquet, to_csv, to_parquet
@@ -49,7 +51,7 @@ class BaseDaskTarget(Target):
         """
 
         self.glob = glob
-        self.path = path
+        self.path = os.path.join(path, "")  # ensures that path ends in / or \
         self.storage_options = storage_options or {}
         self.flag = flag
 
@@ -206,46 +208,40 @@ class BaseDaskTarget(Target):
 #### TODO: Note that these targets force you to specify directory datasets with an ending /
 class ParquetTarget(BaseDaskTarget):
     # should glob be this??
-    def __init__(self, path, glob="*.csv", flag=FLAG, storage_options=None):
+    def __init__(self, path, glob="*.parquet", flag=FLAG, storage_options=None):
         super().__init__(
-            path=path, glob=glob, flag=flag, storage_options=storage_options
+            path=os.path.join(path, ""),
+            glob=glob,
+            flag=flag,
+            storage_options=storage_options,
         )
 
     @classmethod
     def _read(cls, path, **kwargs):
         # from dask.dataframe
-        if path[-1] == "/":
-            return read_parquet(path, **kwargs)
-        else:
-            return read_parquet(path + "/", **kwargs)
+        return read_parquet(os.path.join(path, ""), **kwargs)
 
     @classmethod
     def _write(cls, collection, path, **kwargs):
-        if path[-1] == "/":
-            # again, is this atomic? Shouldn't it be?
-            return collection.to_parquet(path, **kwargs)
-        else:
-            return collection.to_parquet(path + "/", **kwargs)
+        # again, is this atomic? Shouldn't it be?
+        return collection.to_parquet(os.path.join(path, ""), **kwargs)
 
 
 class CSVTarget(BaseDaskTarget):
     def __init__(self, path, glob="*.csv", flag=FLAG, storage_options=None):
         super().__init__(
-            path=path, glob=glob, flag=flag, storage_options=storage_options
+            path=os.path.join(path, ""),
+            glob=glob,
+            flag=flag,
+            storage_options=storage_options,
         )
 
     @classmethod
     def _read(cls, path, **kwargs):
-        if path[-1] == "/":
-            # from dask.dataframe
-            return read_csv(path, **kwargs)
-        else:
-            return read_csv(path + "/", **kwargs)
+        # from dask.dataframe
+        return read_csv(os.path.join(path, ""), **kwargs)
 
     @classmethod
     def _write(cls, collection, path, **kwargs):
-        if path[-1] == "/":
-            # should this be atomic? Is this atomic?
-            return collection.to_csv(path, **kwargs)
-        else:
-            return collection.to_csv(path + "/", **kwargs)
+        # should this be atomic? Is this atomic?
+        return collection.to_csv(os.path.join(path, ""), **kwargs)

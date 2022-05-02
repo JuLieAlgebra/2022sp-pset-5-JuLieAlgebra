@@ -1,7 +1,9 @@
-from luigi import Task, ExternalTask, BoolParameter
+from luigi import Task, ExternalTask, BoolParameter, Parameter
+import luigi
 from luigi.contrib.s3 import S3Target
+import s3fs
 
-from csci_utils.hash.hash_str import get_user_id
+from csci_utils.hash.hash_str import get_user_hash
 
 from csci_utils_starters.csci_utils_luigi_task import Requirement, Requires
 from csci_utils_starters.csci_utils_luigi_dask_target import ParquetTarget, CSVTarget
@@ -15,20 +17,27 @@ from pset_5.salt import SaltedOutput
 class YelpReviews(ExternalTask):
     __version__ = "0.1.0"
     # note that this is going to use the csci_salt secret
-    HASH_ID = get_user_hash("2022sp")
+    HASH_ID = get_user_hash("2022sp").hex()[:8]
     S3_ROOT = f"s3://cscie29-data/{HASH_ID}/pset_5/yelp_data/"
 
     def output(self):
-        # likely need to download??
-        # Oh. Can use the dask target class with appropriate backend??
-        return CSVTarget(S3_ROOT)
-        file_pattern = "yelp_subset_{i}.csv"
-        return {
-            S3Target(
-                S3_ROOT + file_pattern.format(i=i), format=luigi.format.Nop
-            ): file_pattern.format(i=i)
-            for i in range(0, 20)
-        }
+        # Need to use the s3fs for the csv target...?
+        # Slightly modified example from s3fs documentation
+        fs = s3fs.S3FileSystem(requester_pays=True)
+        print(self.HASH_ID)
+        bucket_path = f"cscie29-data/{self.HASH_ID}/pset_5/yelp_data/"
+        targets = fs.ls(bucket_path)  # -> ['my-file.txt']
+        with fs.open(bucket_path + "yelp_subset_0.csv", "rb") as f:
+            print(f.read())  # -> b'Hello, world'
+
+        return CSVTarget(S3_ROOT, storage_options=dict(requester_pays=True))
+        # file_pattern = "yelp_subset_{i}.csv"
+        # return {
+        #     S3Target(
+        #         S3_ROOT + file_pattern.format(i=i), format=luigi.format.Nop
+        #     ): file_pattern.format(i=i)
+        #     for i in range(0, 20)
+        # }
 
 
 class DownloadReviews(Task):
@@ -37,12 +46,14 @@ class DownloadReviews(Task):
     requires = Requires()
     other = Requirement(YelpReviews)
 
-    path = Parameter()
+    # need to fix this default
+    path = Parameter(default="data/")
 
-    output = SaltedOutput(target_class=CSVTarget, format=luigi.format.Nop)
-
-    # def output(self):
-    #     return CSVTarget(path, format=luigi.format.Nop)
+    output = SaltedOutput(
+        target_class=CSVTarget,
+        format=luigi.format.Nop,
+        target_kwargs=dict(requester_pays=True),
+    )
 
     # or many it's this way..? Only if returning the dictionary form YelpReviews though
     def run(self):
@@ -54,22 +65,6 @@ class DownloadReviews(Task):
         # how to do this?
         self.output().write_dask(collection, compute=True, storage_options=None)
 
-        # _write(inputs.keys(), self.path)#, **kwargs)
-
-    # def run(self):
-    #     with self.output().write() as outfile
-    #         for file_name, s3_target in self.input().items():
-    #             with s3_target.open('r') as infile:
-    #                 output.write(infile)
-    #             # download(f)
-
-    # def run(self):
-    #     """Downloads the model by writing a copy to the output file"""
-    #     with self.input().open("r") as f:
-    #         # how to do this???? HOw to read all the csvs into a dask file
-    #         with self.output()._write(collection, path, **kwargs) as outfile:
-    #             outfile.write(f.read())
-
 
 class CleanedReviews(Task):
     __version__ = "0.1.0"
@@ -78,7 +73,9 @@ class CleanedReviews(Task):
     requires = Requires()
     other = Requirement(DownloadReviews)
 
-    output = SaltedOutput(target_class=ParquetTarget)
+    output = SaltedOutput(
+        target_class=ParquetTarget, storage_options=dict(requester_pays=True)
+    )
     # def output(self):
     #     return SaltedOutput(...)
 
