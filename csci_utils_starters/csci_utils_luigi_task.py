@@ -8,10 +8,12 @@ from luigi.task import Task
 
 class Requirement:
     def __init__(self, task_class, **params):
-        raise NotImplementedError()
+        self.task_class = task_class
+        self.params = params # ??
 
     def __get__(self, task: Task, cls) -> Task:
-        raise NotImplementedError()
+        if task is None:
+            return self
         return task.clone(self.task_class, **self.params)
 
 
@@ -36,8 +38,9 @@ class Requires:
     """
 
     def __get__(self, task, cls):
-        raise NotImplementedError()
         # Bind self/task in a closure
+        if task is None:
+            return self
         return partial(self.__call__, task)
 
     def __call__(self, task) -> dict:
@@ -51,24 +54,29 @@ class Requires:
         """
         # Search task.__class__ for Requirement instances
         # return
-        raise NotImplementedError()
+        # task.__class__.Requirement
+        requirements = {param: getattr(task, param) for param in dir(task) if param == "other"}
+        return requirements
 
 
 class TargetOutput:
     def __init__(
         self,
-        file_pattern="{task.__class__.__name__}",
+        file_pattern="{task.__class__.__name__}{self.ext}",
         ext=".csv",
         target_class=LocalTarget,
         **target_kwargs
     ):
-        raise NotImplementedError()
+        self.file_pattern = file_pattern
+        self.ext = ext
+        self.target_class = target_class
+        self.target_kwargs = target_kwargs
 
     def __get__(self, task: Task, cls):
-        raise NotImplementedError()
+        if task is None:
+            return self
         return partial(self.__call__, task)
 
     def __call__(self, task: Task) -> Target:
-        # Determine the path etc here
-        # return self.target_class(...)
-        raise NotImplementedError()
+        # modified file pattern to be more the lecture from March 3rd
+        return self.target_class(self.file_pattern.format(task=task, self=self))

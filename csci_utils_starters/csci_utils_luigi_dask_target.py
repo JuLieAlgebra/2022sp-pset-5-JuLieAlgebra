@@ -203,9 +203,49 @@ class BaseDaskTarget(Target):
         raise NotImplementedError()
 
 
+#### TODO: Note that these targets force you to specify directory datasets with an ending /
 class ParquetTarget(BaseDaskTarget):
-    raise NotImplementedError()
+    # should glob be this??
+    def __init__(self, path, glob="*.csv", flag=FLAG, storage_options=None):
+        super().__init__(
+            path=path, glob=glob, flag=flag, storage_options=storage_options
+        )
+
+    @classmethod
+    def _read(cls, path, **kwargs):
+        # from dask.dataframe
+        if path[-1] == "/":
+            return read_parquet(path, **kwargs)
+        else:
+            return read_parquet(path+'/', **kwargs)
+
+    @classmethod
+    def _write(cls, collection, path, **kwargs):
+        if path[-1] == "/":
+            # again, is this atomic? Shouldn't it be?
+            return collection.to_parquet(path, **kwargs)
+        else:
+            return collection.to_parquet(path+'/', **kwargs)
 
 
 class CSVTarget(BaseDaskTarget):
-    raise NotImplementedError()
+    def __init__(self, path, glob="*.csv", flag=FLAG, storage_options=None):
+        super().__init__(
+            path=path, glob=glob, flag=flag, storage_options=storage_options
+        )
+
+    @classmethod
+    def _read(cls, path, **kwargs):
+        if path[-1] == "/":
+            # from dask.dataframe
+            return read_csv(path, **kwargs)
+        else:
+            return read_csv(path+'/', **kwargs)
+
+    @classmethod
+    def _write(cls, collection, path, **kwargs):
+        if path[-1] == "/":
+            # should this be atomic? Is this atomic?
+            return collection.to_csv(path, **kwargs)
+        else:
+            return collection.to_csv(path+'/', **kwargs)
