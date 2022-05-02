@@ -217,7 +217,7 @@ class ParquetTarget(BaseDaskTarget):
         if path[-1] == "/":
             return read_parquet(path, **kwargs)
         else:
-            return read_parquet(path+'/', **kwargs)
+            return read_parquet(path + "/", **kwargs)
 
     @classmethod
     def _write(cls, collection, path, **kwargs):
@@ -225,7 +225,7 @@ class ParquetTarget(BaseDaskTarget):
             # again, is this atomic? Shouldn't it be?
             return collection.to_parquet(path, **kwargs)
         else:
-            return collection.to_parquet(path+'/', **kwargs)
+            return collection.to_parquet(path + "/", **kwargs)
 
 
 class CSVTarget(BaseDaskTarget):
@@ -240,7 +240,7 @@ class CSVTarget(BaseDaskTarget):
             # from dask.dataframe
             return read_csv(path, **kwargs)
         else:
-            return read_csv(path+'/', **kwargs)
+            return read_csv(path + "/", **kwargs)
 
     @classmethod
     def _write(cls, collection, path, **kwargs):
@@ -248,4 +248,4 @@ class CSVTarget(BaseDaskTarget):
             # should this be atomic? Is this atomic?
             return collection.to_csv(path, **kwargs)
         else:
-            return collection.to_csv(path+'/', **kwargs)
+            return collection.to_csv(path + "/", **kwargs)

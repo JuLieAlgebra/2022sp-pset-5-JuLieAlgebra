@@ -9,7 +9,7 @@ from luigi.task import Task
 class Requirement:
     def __init__(self, task_class, **params):
         self.task_class = task_class
-        self.params = params # ??
+        self.params = params  # ??
 
     def __get__(self, task: Task, cls) -> Task:
         if task is None:
@@ -55,7 +55,9 @@ class Requires:
         # Search task.__class__ for Requirement instances
         # return
         # task.__class__.Requirement
-        requirements = {param: getattr(task, param) for param in dir(task) if param == "other"}
+        requirements = {
+            param: getattr(task, param) for param in dir(task) if param == "other"
+        }
         return requirements
 
 
