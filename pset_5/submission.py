@@ -55,7 +55,7 @@ class AnsP5(answers.Answers):
         task = ByStars()
         ddf = task.get_results()
         ans = {
-            star: int(avg_len)
+            star: int(round(avg_len))
             for star, avg_len in zip(sorted(question.answer.keys()), ddf.avg_len.values)
         }
         return ans
@@ -84,7 +84,7 @@ class AnsP5(answers.Answers):
         task = ByDecade()
         ddf = task.get_results()
         ans = {
-            year: int(avg_len)
+            year: int(round(avg_len))
             for year, avg_len in zip(sorted(question.answer.keys()), ddf.avg_len.values)
         }
         return ans
@@ -109,7 +109,7 @@ class AnsP5(answers.Answers):
         # print(sorted(question.answer.keys()), ddf.avg_len.values)
         # print(ddf)
         ans = {
-            dow: int(avg_len)
+            dow: int(round(avg_len))
             for dow, avg_len in zip(sorted(question.answer.keys()), ddf.avg_len.values)
         }
         return ans

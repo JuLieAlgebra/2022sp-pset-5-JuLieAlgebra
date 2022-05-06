@@ -40,7 +40,7 @@ class YelpReviews(ExternalTask):
 
 
 class CleanedReviews(Task):
-    __version__ = "0.1.0"
+    __version__ = "0.1.2"
     subset = BoolParameter(default=True)
 
     requires = Requires()
@@ -87,6 +87,7 @@ class CleanedReviews(Task):
         ddf = ddf[
             ~ddf["text"].isnull()
         ]  # credit to Alba for this line, thanks everyone for the heads up on this column!
+        ddf = ddf[~ddf["user_id"].isnull()]
         ddf["date"] = dask.dataframe.to_datetime(ddf["date"])
         ddf = ddf.dropna()  # extra check just in case
 
