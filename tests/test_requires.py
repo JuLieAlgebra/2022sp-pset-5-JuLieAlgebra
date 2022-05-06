@@ -17,3 +17,15 @@ class RequireTests(TestCase):
     def test_yelp_requires(self):
         cl = CleanedReviews()
         assert type(cl.requires()["other"]) == YelpReviews
+
+    def test_decade_requires(self):
+        cl = ByDecade()
+        assert type(cl.requires()["other"]) == CleanedReviews
+
+    def test_year_requires(self):
+        cl = ByDecade()
+        assert type(cl.requires()["other"]) == CleanedReviews
+
+    def test_day_requires(self):
+        cl = ByDay()
+        assert type(cl.requires()["other"]) == CleanedReviews

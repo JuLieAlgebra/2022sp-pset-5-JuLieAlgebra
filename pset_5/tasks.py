@@ -89,7 +89,6 @@ class CleanedReviews(Task):
         ]  # credit to Alba for this line, thanks everyone for the heads up on this column!
         ddf = ddf[~ddf["user_id"].isnull()]
         ddf["date"] = dask.dataframe.to_datetime(ddf["date"])
-        ddf = ddf.dropna()  # extra check just in case
 
         out = ddf
         self.output().write_dask(out, compression="gzip")
@@ -97,6 +96,7 @@ class CleanedReviews(Task):
 
 class ByDecade(Task):
     __version__ = "0.1.0"
+    subset = BoolParameter(default=True)
 
     # Be sure to read from CleanedReviews locally
     path = os.path.join("data", "{task.__class__.__name__}-{salt}")
@@ -105,7 +105,7 @@ class ByDecade(Task):
     )
 
     requires = Requires()
-    other = Requirement(CleanedReviews)
+    other = Requirement(CleanedReviews, subset=subset)
 
     def run(self):
         """Return the average (rounded to int) length of review by year"""
@@ -124,9 +124,10 @@ class ByDecade(Task):
 
 class ByStars(Task):
     __version__ = "0.1.0"
+    subset = BoolParameter(default=True)
 
     requires = Requires()
-    other = Requirement(CleanedReviews)
+    other = Requirement(CleanedReviews, subset=subset)
 
     path = os.path.join("data", "{task.__class__.__name__}-{salt}")
     output = SaltedOutput(
@@ -150,9 +151,10 @@ class ByStars(Task):
 
 class ByDay(Task):
     __version__ = "0.1.0"
+    subset = BoolParameter(default=True)
 
     requires = Requires()
-    other = Requirement(CleanedReviews)
+    other = Requirement(CleanedReviews, subset=subset)
 
     path = os.path.join("data", "{task.__class__.__name__}-{salt}")
     output = SaltedOutput(

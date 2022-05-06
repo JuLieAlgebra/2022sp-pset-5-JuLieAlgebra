@@ -9,7 +9,7 @@ from luigi.task import Task
 class Requirement:
     def __init__(self, task_class, **params):
         self.task_class = task_class
-        self.params = params  # ??
+        self.params = params
 
     def __get__(self, task: Task, cls) -> Task:
         if task is None:

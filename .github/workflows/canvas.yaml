@@ -35,6 +35,9 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
+    - name: Create Test Data
+      run: |
+        pipenv run python -m pset_5
     - name: Test with pytest
       run: |
         pipenv run pytest --cov-report xml --cov-report term
@@ -78,6 +81,6 @@ jobs:
         CANVAS_URL: https://canvas.harvard.edu
         CSCI_SALT: ${{ secrets.CSCI_SALT }}
       run: |
-        pipenv run python -m pset_5
+        pipenv run python -m pset_5 --full FULL
 
 
