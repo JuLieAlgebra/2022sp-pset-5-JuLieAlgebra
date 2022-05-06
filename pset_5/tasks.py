@@ -73,7 +73,7 @@ class CleanedReviews(Task):
             ddf[col] = ddf[col].fillna(0)
 
         # should cover null user_id values and no others, since all the nans were filled in the numeric columns
-        ddf = ddf.dropna()
+        ddf = ddf.dropna(subset=numeric_cols)
         ddf = ddf[ddf["review_id"].str.len() == 22]
         ddf = ddf.set_index("review_id")
         ddf = ddf.astype(
@@ -85,7 +85,7 @@ class CleanedReviews(Task):
             }
         )
         ddf = ddf[
-            ddf["text"] != None
+            ~ddf["text"].isnull()
         ]  # credit to Alba for this line, thanks everyone for the heads up on this column!
         ddf["date"] = dask.dataframe.to_datetime(ddf["date"])
         ddf = ddf.dropna()  # extra check just in case
@@ -110,7 +110,7 @@ class ByDecade(Task):
         """Return the average (rounded to int) length of review by year"""
         ddf = self.input()["other"].read_dask()
         year_ddf = ddf.groupby(ddf.date.dt.year)
-        f = lambda ddf: int(ddf.text.str.len().mean())
+        f = lambda ddf: ddf.text.str.len().mean()
         year_ddf = year_ddf.apply(f).to_frame()
         year_ddf.columns = ["avg_len"]
         out = year_ddf
@@ -137,7 +137,7 @@ class ByStars(Task):
         ddf = self.input()["other"].read_dask()
         star_ddf = ddf.groupby(ddf.stars)
 
-        f = lambda ddf: int(ddf.text.str.len().mean())
+        f = lambda ddf: ddf.text.str.len().mean()
         avg_len = star_ddf.apply(f).to_frame()
         avg_len.columns = ["avg_len"]
         out = avg_len
@@ -162,7 +162,7 @@ class ByDay(Task):
         """Find the average (rounded to int) length of review by day of week (mon=0, sun=6)"""
         ddf = self.input()["other"].read_dask()
         day_ddf = ddf.groupby(ddf.date.dt.weekday)
-        f = lambda ddf: int(ddf.text.str.len().mean())
+        f = lambda ddf: ddf.text.str.len().mean()
         day_ddf = day_ddf.apply(f).to_frame()
         day_ddf.columns = ["avg_len"]
         out = day_ddf

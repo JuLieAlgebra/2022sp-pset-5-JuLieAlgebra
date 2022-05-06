@@ -11,6 +11,7 @@ from canvasapi.util import combine_kwargs
 import luigi
 
 from csci_utils.canvas import canvas, answers
+from pset_5.tasks import ByDecade, ByStars, ByDay, CleanedReviews, YelpReviews
 
 
 class AnsP5(answers.Answers):
@@ -27,9 +28,9 @@ class AnsP5(answers.Answers):
             "v_major": self.answer_major_version,
             "v_minor": self.answer_minor_version,
             "v_patch": self.answer_patch_version,
-            "by_stars": self.answer_stars,
-            "by_decade": self.answer_decade,
-            "by_day": self.answer_day,
+            "stars": self.answer_stars,
+            "year": self.answer_decade,
+            "dow": self.answer_day,
         }
 
         self.submission_info = submission_info
@@ -39,30 +40,77 @@ class AnsP5(answers.Answers):
         self.answers = self.get_answers()
 
     def answer_stars(self, question) -> dict:
-        """Answers the question by stars"""
+        """Answers the question by stars
+
+        Question 2 - <p id="stars">Find the average (rounded to int) length of review by # of stars</p>
+        {'answer': {'stars_1': None,
+            'stars_2': None,
+            'stars_3': None,
+            'stars_4': None,
+            'stars_5': None},
+        'answers': None,
+        'id': 3039109,
+        'question_type': 'fill_in_multiple_blanks_question'}
+        """
         task = ByStars()
         ddf = task.get_results()
         ans = {
-            star: avg_len for star, avg_len in zip(ddf.index.values, ddf.avg_len.values)
+            star: int(avg_len)
+            for star, avg_len in zip(sorted(question.answer.keys()), ddf.avg_len.values)
         }
         return ans
 
     def answer_decade(self, question) -> dict:
-        """Answers the question by decade"""
+        """Answers the question by year
+
+        Question 1 - <p id="year">Return the average (rounded to int) length of review by year</p>
+        {'answer': {'year_2005': None,
+            'year_2006': None,
+            'year_2007': None,
+            'year_2008': None,
+            'year_2009': None,
+            'year_2010': None,
+            'year_2011': None,
+            'year_2012': None,
+            'year_2013': None,
+            'year_2014': None,
+            'year_2015': None,
+            'year_2016': None,
+            'year_2017': None},
+        'answers': None,
+        'id': 3039108,
+        'question_type': 'fill_in_multiple_blanks_question'}
+        """
         task = ByDecade()
         ddf = task.get_results()
         ans = {
-            star: avg_len for star, avg_len in zip(ddf.index.values, ddf.avg_len.values)
+            year: int(avg_len)
+            for year, avg_len in zip(sorted(question.answer.keys()), ddf.avg_len.values)
         }
         return ans
 
     def answer_day(self, question) -> dict:
-        """Answers the question by star"""
+        """Answers the question by dow
+
+        Question 3 - <p id="dow">Find the average (rounded to int) length of review by day of week (mon=0, sun=6)</p>
+        {'answer': {'dow_0': None,
+            'dow_1': None,
+            'dow_2': None,
+            'dow_3': None,
+            'dow_4': None,
+            'dow_5': None,
+            'dow_6': None},
+        'answers': None,
+        'id': 3039110,
+        'question_type': 'fill_in_multiple_blanks_question'}
+        """
         task = ByDay()
         ddf = task.get_results()
+        # print(sorted(question.answer.keys()), ddf.avg_len.values)
+        # print(ddf)
         ans = {
-            str(star): avg_len
-            for star, avg_len in zip(ddf.index.values, ddf.avg_len.values)
+            dow: int(avg_len)
+            for dow, avg_len in zip(sorted(question.answer.keys()), ddf.avg_len.values)
         }
         return ans
 

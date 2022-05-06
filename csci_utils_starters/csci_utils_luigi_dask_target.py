@@ -171,10 +171,9 @@ class BaseDaskTarget(Target):
         logger=luigi_logger,
         **kwargs
     ):
-        # TODO fix!!!!!!!!!!!!!!!!!
+        # line change here
         self.path = self.path[:-1]
         print("Writing dask collection to {}".format(self.path))
-        print("this is the collection thing:", collection)
         if logger:
             logger.info("Writing dask collection to {}".format(self.path))
         storage_options = self.augment_options(storage_options)
