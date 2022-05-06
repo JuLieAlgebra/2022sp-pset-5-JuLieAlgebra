@@ -1,11 +1,18 @@
+import os
+
 from luigi import Task, ExternalTask, BoolParameter, Parameter
 import luigi
 from luigi.contrib.s3 import S3Target
 import s3fs
+import dask.dataframe
 
-from csci_utils.hash.hash_str import get_user_hash
+from csci_utils.hash.hash_str import get_user_id
 
-from csci_utils_starters.csci_utils_luigi_task import Requirement, Requires
+from csci_utils_starters.csci_utils_luigi_task import (
+    Requirement,
+    Requires,
+    TargetOutput,
+)
 from csci_utils_starters.csci_utils_luigi_dask_target import ParquetTarget, CSVTarget
 
 from pset_5.salt import SaltedOutput
@@ -14,56 +21,22 @@ from pset_5.salt import SaltedOutput
 # from csci_utils.luigi.task import Requirement, Requires
 
 
+################################################################################
+
+
 class YelpReviews(ExternalTask):
     __version__ = "0.1.0"
-    # note that this is going to use the csci_salt secret
-    HASH_ID = get_user_hash("2022sp").hex()[:8]
+    # note that this is going to use the csci_salt secret & canvas for get_csci_pepper
+    HASH_ID = get_user_id(b"2022sp")
     S3_ROOT = f"s3://cscie29-data/{HASH_ID}/pset_5/yelp_data/"
-
-    def output(self):
-        # Need to use the s3fs for the csv target...?
-        # Slightly modified example from s3fs documentation
-        fs = s3fs.S3FileSystem(requester_pays=True)
-        print(self.HASH_ID)
-        bucket_path = f"cscie29-data/{self.HASH_ID}/pset_5/yelp_data/"
-        targets = fs.ls(bucket_path)  # -> ['my-file.txt']
-        with fs.open(bucket_path + "yelp_subset_0.csv", "rb") as f:
-            print(f.read())  # -> b'Hello, world'
-
-        return CSVTarget(S3_ROOT, storage_options=dict(requester_pays=True))
-        # file_pattern = "yelp_subset_{i}.csv"
-        # return {
-        #     S3Target(
-        #         S3_ROOT + file_pattern.format(i=i), format=luigi.format.Nop
-        #     ): file_pattern.format(i=i)
-        #     for i in range(0, 20)
-        # }
-
-
-class DownloadReviews(Task):
-    __version__ = "0.1.0"
-
-    requires = Requires()
-    other = Requirement(YelpReviews)
-
-    # need to fix this default
-    path = Parameter(default="data/")
 
     output = SaltedOutput(
         target_class=CSVTarget,
-        format=luigi.format.Nop,
-        target_kwargs=dict(requester_pays=True),
+        file_pattern=S3_ROOT,
+        ext="",
+        glob="*.csv",
+        storage_options=dict(requester_pays=True),
     )
-
-    # or many it's this way..? Only if returning the dictionary form YelpReviews though
-    def run(self):
-        """Downloads the model by writing a copy to the output file"""
-        # I think I need to modify this
-        inputs = self.input()
-        # is collection a list of S3 targets?
-        collection = inputs.keys()
-        # how to do this?
-        self.output().write_dask(collection, compute=True, storage_options=None)
 
 
 class CleanedReviews(Task):
@@ -71,39 +44,129 @@ class CleanedReviews(Task):
     subset = BoolParameter(default=True)
 
     requires = Requires()
-    other = Requirement(DownloadReviews)
-
-    output = SaltedOutput(
-        target_class=ParquetTarget, storage_options=dict(requester_pays=True)
-    )
-    # def output(self):
-    #     return SaltedOutput(...)
+    other = Requirement(YelpReviews)
 
     # Output should be a local ParquetTarget in ./data, ideally a salted output,
     # and with the subset parameter either reflected via salted output or
     # as part of the directory structure
+    path = os.path.join("data", "{task.__class__.__name__}-{salt}")
+    output = SaltedOutput(
+        file_pattern=path, target_class=ParquetTarget, ext="", glob="*.parquet"
+    )
 
     def run(self):
-
         numeric_cols = ["funny", "cool", "useful", "stars"]
-        ddf = self.input().read_dask(...)
-
+        ddf = self.input()["other"]  # that's the CSV target for some reason?
+        ddf = ddf.read_dask(
+            dtype={
+                "cool": "float64",
+                "funny": "float64",
+                "useful": "float64",
+                "stars": "float64",
+            }
+        )
         if self.subset:
             ddf = ddf.get_partition(0)
 
-        # out = ...
+        # filling nan's with zeros as directed
+        for col in numeric_cols:
+            ddf[col] = ddf[col].fillna(0)
+
+        # should cover null user_id values and no others, since all the nans were filled in the numeric columns
+        ddf = ddf.dropna()
+        ddf = ddf[ddf["review_id"].str.len() == 22]
+        ddf = ddf.set_index("review_id")
+        ddf = ddf.astype(
+            dtype={
+                "cool": "int64",
+                "funny": "int64",
+                "useful": "int64",
+                "stars": "int64",
+            }
+        )
+        ddf = ddf[
+            ddf["text"] != None
+        ]  # credit to Alba for this line, thanks everyone for the heads up on this column!
+        ddf["date"] = dask.dataframe.to_datetime(ddf["date"])
+        ddf = ddf.dropna()  # extra check just in case
+
+        out = ddf
         self.output().write_dask(out, compression="gzip")
 
 
-class BySomething(Task):
+class ByDecade(Task):
     __version__ = "0.1.0"
 
     # Be sure to read from CleanedReviews locally
-    def output(self):
-        return  # something
+    path = os.path.join("data", "{task.__class__.__name__}-{salt}")
+    output = SaltedOutput(
+        file_pattern=path, target_class=ParquetTarget, ext="", glob="*.parquet"
+    )
+
+    requires = Requires()
+    other = Requirement(CleanedReviews)
 
     def run(self):
-        raise NotImplementedError()
+        """Return the average (rounded to int) length of review by year"""
+        ddf = self.input()["other"].read_dask()
+        year_ddf = ddf.groupby(ddf.date.dt.year)
+        f = lambda ddf: int(ddf.text.str.len().mean())
+        year_ddf = year_ddf.apply(f).to_frame()
+        year_ddf.columns = ["avg_len"]
+        out = year_ddf
+        self.output().write_dask(out, compression="gzip")
+
+    def get_results(self):
+        """I think this is for answering the questions?"""
+        return self.output().read_dask().compute()
+
+
+class ByStars(Task):
+    __version__ = "0.1.0"
+
+    requires = Requires()
+    other = Requirement(CleanedReviews)
+
+    path = os.path.join("data", "{task.__class__.__name__}-{salt}")
+    output = SaltedOutput(
+        file_pattern=path, target_class=ParquetTarget, ext="", glob="*.parquet"
+    )
+
+    def run(self):
+        """Find the average (rounded to int) length of review by # of stars"""
+        ddf = self.input()["other"].read_dask()
+        star_ddf = ddf.groupby(ddf.stars)
+
+        f = lambda ddf: int(ddf.text.str.len().mean())
+        avg_len = star_ddf.apply(f).to_frame()
+        avg_len.columns = ["avg_len"]
+        out = avg_len
+        self.output().write_dask(out, compression="gzip")
+
+    def get_results(self):
+        return self.output().read_dask().compute()
+
+
+class ByDay(Task):
+    __version__ = "0.1.0"
+
+    requires = Requires()
+    other = Requirement(CleanedReviews)
+
+    path = os.path.join("data", "{task.__class__.__name__}-{salt}")
+    output = SaltedOutput(
+        file_pattern=path, target_class=ParquetTarget, ext="", glob="*.parquet"
+    )
+
+    def run(self):
+        """Find the average (rounded to int) length of review by day of week (mon=0, sun=6)"""
+        ddf = self.input()["other"].read_dask()
+        day_ddf = ddf.groupby(ddf.date.dt.weekday)
+        f = lambda ddf: int(ddf.text.str.len().mean())
+        day_ddf = day_ddf.apply(f).to_frame()
+        day_ddf.columns = ["avg_len"]
+        out = day_ddf
+        self.output().write_dask(out, compression="gzip")
 
     def get_results(self):
         return self.output().read_dask().compute()

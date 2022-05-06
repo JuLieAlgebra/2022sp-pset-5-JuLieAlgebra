@@ -171,6 +171,10 @@ class BaseDaskTarget(Target):
         logger=luigi_logger,
         **kwargs
     ):
+        # TODO fix!!!!!!!!!!!!!!!!!
+        self.path = self.path[:-1]
+        print("Writing dask collection to {}".format(self.path))
+        print("this is the collection thing:", collection)
         if logger:
             logger.info("Writing dask collection to {}".format(self.path))
         storage_options = self.augment_options(storage_options)
@@ -224,11 +228,12 @@ class ParquetTarget(BaseDaskTarget):
     @classmethod
     def _write(cls, collection, path, **kwargs):
         # again, is this atomic? Shouldn't it be?
-        return collection.to_parquet(os.path.join(path, ""), **kwargs)
+        return collection.to_parquet(path, **kwargs)
 
 
 class CSVTarget(BaseDaskTarget):
     def __init__(self, path, glob="*.csv", flag=FLAG, storage_options=None):
+        print("CSV target inint: ", path, glob, flag, storage_options)
         super().__init__(
             path=os.path.join(path, ""),
             glob=glob,
@@ -239,9 +244,10 @@ class CSVTarget(BaseDaskTarget):
     @classmethod
     def _read(cls, path, **kwargs):
         # from dask.dataframe
-        return read_csv(os.path.join(path, ""), **kwargs)
+        # Not sure what combo of turning into directory we want...
+        return read_csv(path, **kwargs)
 
     @classmethod
     def _write(cls, collection, path, **kwargs):
         # should this be atomic? Is this atomic?
-        return collection.to_csv(os.path.join(path, ""), **kwargs)
+        return collection.to_csv(path, **kwargs)

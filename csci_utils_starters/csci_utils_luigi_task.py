@@ -56,7 +56,9 @@ class Requires:
         # return
         # task.__class__.Requirement
         requirements = {
-            param: getattr(task, param) for param in dir(task) if param == "other"
+            param: getattr(task, param)
+            for param in dir(task.__class__)
+            if isinstance(getattr(task.__class__, param), Requirement)
         }
         return requirements
 
@@ -64,7 +66,7 @@ class Requires:
 class TargetOutput:
     def __init__(
         self,
-        file_pattern="{task.__class__.__name__}{self.ext}",
+        file_pattern="{task.__class__.__name__}{ext}",
         ext=".csv",
         target_class=LocalTarget,
         **target_kwargs
@@ -81,4 +83,6 @@ class TargetOutput:
 
     def __call__(self, task: Task) -> Target:
         # modified file pattern to be more the lecture from March 3rd
-        return self.target_class(self.file_pattern.format(task=task, self=self))
+        return self.target_class(
+            self.file_pattern.format(task=task, ext=self.ext), **self.target_kwargs
+        )

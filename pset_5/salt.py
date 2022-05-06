@@ -1,4 +1,5 @@
 import hashlib
+from functools import partial
 
 from luigi.task import flatten
 from luigi import LocalTarget, Task, Target
@@ -10,7 +11,7 @@ from csci_utils_starters.csci_utils_luigi_task import TargetOutput
 class SaltedOutput(TargetOutput):
     def __init__(
         self,
-        file_pattern="{task.__class__.__name__}-{salt}{self.ext}",
+        file_pattern="{task.__class__.__name__}-{salt}",
         ext=".csv",
         target_class=LocalTarget,
         **target_kwargs
@@ -19,16 +20,20 @@ class SaltedOutput(TargetOutput):
             file_pattern=file_pattern,
             ext=ext,
             target_class=target_class,
-            target_kwargs=target_kwargs,
+            **target_kwargs,
         )
+
+    def __get__(self, task: Task, cls):
+        if task is None:
+            return self
+        return partial(self.__call__, task)
 
     def __call__(self, task: Task) -> Target:
         # modified file pattern to be more the lecture from March 3rd
         return self.target_class(
-            self.file_pattern.format(
-                task=task, self=self, salt=self.get_salted_version(task)
-            ),
-            self.target_kwargs,
+            self.file_pattern.format(task=task, salt=self.get_salted_version(task))
+            + self.ext,
+            **self.target_kwargs,
         )
 
     def get_salted_version(self, task: Task) -> str:
