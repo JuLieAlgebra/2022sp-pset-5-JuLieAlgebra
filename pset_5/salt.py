@@ -32,15 +32,17 @@ class SaltedOutput(TargetOutput):
 
     def get_salted_version(self, task: Task) -> str:
         """
-        Rough version of Prof. Gorlin's implementation. Skips over the parameters
-        of the Tasks.
+        Rough version of Prof. Gorlin's implementation.
         """
         salt = ""
+        print("STARTING REC TREE FOR ", task)
         # sorting the requirements as suggested to increase salt stability
         for req in sorted(flatten(task.requires())):
+            print("Salt for:", task)
             salt += self.get_salted_version(req)
 
         salt += task.__class__.__name__ + task.__version__
         for param_name, param in sorted(task.get_params()):
             salt += str(param_name) + str(repr(task.param_kwargs[param_name]))
+        print("the salt: ", salt)
         return hashlib.sha256(salt.encode()).hexdigest()[:10]

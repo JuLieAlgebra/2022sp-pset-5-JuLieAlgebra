@@ -54,10 +54,7 @@ class AnsP5(answers.Answers):
         """
         task = ByStars()
         ddf = task.get_results()
-        ans = {
-            star: round(avg_len)
-            for star, avg_len in zip(sorted(question.answer.keys()), ddf.avg_len.values)
-        }
+        ans = {f"stars_{stars}": round(row.avg_len) for stars, row in ddf.iterrows()}
         return ans
 
     def answer_decade(self, question) -> dict:
@@ -83,10 +80,7 @@ class AnsP5(answers.Answers):
         """
         task = ByDecade()
         ddf = task.get_results()
-        ans = {
-            year: round(avg_len)
-            for year, avg_len in zip(sorted(question.answer.keys()), ddf.avg_len.values)
-        }
+        ans = {f"year_{year}": round(row.avg_len) for year, row in ddf.iterrows()}
         return ans
 
     def answer_day(self, question) -> dict:
@@ -106,12 +100,7 @@ class AnsP5(answers.Answers):
         """
         task = ByDay()
         ddf = task.get_results()
-        # prsorted(question.answer.keys()), ddf.avg_len.values)
-        # prddf)
-        ans = {
-            dow: round(avg_len)
-            for dow, avg_len in zip(sorted(question.answer.keys()), ddf.avg_len.values)
-        }
+        ans = {f"dow_{dow}": round(row.avg_len) for dow, row in ddf.iterrows()}
         return ans
 
 

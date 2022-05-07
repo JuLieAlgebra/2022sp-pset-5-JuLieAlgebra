@@ -166,4 +166,15 @@ class SubmissionTests(TestCase):
     def test_cli_full(self):
         """Tests that the arg parser returns the right values for subset=False"""
         parser = cli.create_parse()
-        assert cli.subset_flag(parser, "--full FULL")
+        # Ugh, got a little tripped up over the inverted logic
+        # Should we use the subset? If --full, no.
+        assert not cli.subset_flag(parser, "--full")
+
+    # TODO test when not making other changes to testing module
+    # @mock.patch("argparse.ArgumentParser.parse_args", mock.Mock())
+    # def test_cli_subset(self):
+    #     """Tests that the arg parser returns the right values for subset=False"""
+    #     parser = cli.create_parse()
+    #     # Ugh, got a little tripped up over the inverted logic
+    #     # Should we use the subset? If --full, no.
+    #     assert not cli.subset_flag(parser, "")

@@ -35,12 +35,18 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-2
-    - name: Create Test Data
-      run: |
-        pipenv run python -m pset_5
     - name: Test with pytest
       run: |
         pipenv run pytest --cov-report xml --cov-report term
+      env:
+        CANVAS_TOKEN: ${{ secrets.CANVAS_TOKEN }}
+        CANVAS_COURSE_ID: ${{ secrets.CANVAS_COURSE_ID }}
+        CANVAS_ASSIGNMENT_ID: ${{ secrets.CANVAS_ASSIGNMENT_ID }}
+        CANVAS_QUIZ_ID: ${{ secrets.CANVAS_QUIZ_ID }}
+        CANVAS_URL: https://canvas.harvard.edu
+        CSCI_SALT: ${{ secrets.CSCI_SALT }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: CodeClimate Coverage
       uses: paambaati/codeclimate-action@v2.7.5
       env:
@@ -80,6 +86,8 @@ jobs:
         CANVAS_QUIZ_ID: ${{ secrets.CANVAS_QUIZ_ID }}
         CANVAS_URL: https://canvas.harvard.edu
         CSCI_SALT: ${{ secrets.CSCI_SALT }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       run: |
         pipenv run python -m pset_5 --full FULL
 
