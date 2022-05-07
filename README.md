@@ -1,5 +1,15 @@
 # Pset 5
 
+[![Test assignment and submit to Canvas](https://github.com/csci-e-29/2022sp-pset-5-JuLieAlgebra/actions/workflows/canvas.yaml/badge.svg?branch=master)](https://github.com/csci-e-29/2022sp-pset-5-JuLieAlgebra/actions/workflows/canvas.yaml)
+
+[![Maintainability](https://api.codeclimate.com/v1/badges/990ab3ff7dd17e3a202a/maintainability)](https://codeclimate.com/repos/626872670fd5e817ed017244/maintainability)
+
+[![Test Coverage](https://api.codeclimate.com/v1/badges/990ab3ff7dd17e3a202a/test_coverage)](https://codeclimate.com/repos/626872670fd5e817ed017244/test_coverage)
+
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+I did the SaltedOutput extra credit in pset_5/salt.py :)
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*

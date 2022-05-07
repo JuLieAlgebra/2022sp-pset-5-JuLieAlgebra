@@ -6,19 +6,13 @@ verify_ssl = true
 [dev-packages]
 pytest = "*"
 pytest-cov = "*"
+pytest-runner = "*"
 
 [packages]
-awscli = "*"
-canvasapi = "*"
-environs = "*"
-gitpython = "*"
-pandas = "*"
-openpyxl = "*"
-pyarrow = "*"
+luigi = "*"
 fastparquet = "*"
-
+dask = {extras = ["dataframe"], version = "*"}
 csci-utils = {editable = true,git = "https://github.com/csci-e-29/2022sp-csci-utils-JuLieAlgebra"}
-
 
 [requires]
 python_version = "3.8"
