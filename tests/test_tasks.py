@@ -14,6 +14,12 @@ class TaskTests(TestCase):
         requires = tasks.Requires()
         assert requires.__class__.__name__ == "Requires"
 
+    def test_yelpreviews(self):
+        """Testing functionality for the single partition of data testing for pset_5 luigi task"""
+        cl = YelpReviews()
+        out = cl.output()
+        assert isinstance(out, target.CSVTarget)
+
     def test_cleanedreviews(self):
         """Testing functionality for the single partition of data testing for pset_5 luigi task"""
         cl = CleanedReviews(subset=True)

@@ -41,4 +41,6 @@ class SaltedOutput(TargetOutput):
             salt += self.get_salted_version(req)
 
         salt += task.__class__.__name__ + task.__version__
+        for param_name, param in sorted(task.get_params()):
+            salt += str(param_name) + str(repr(task.param_kwargs[param_name]))
         return hashlib.sha256(salt.encode()).hexdigest()[:10]
