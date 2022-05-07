@@ -10,7 +10,7 @@ from pset_5 import submission
 def create_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--full", help="Run Luigi tasks on full set of partitions or not"
+        "--full", help="Run Luigi debug on full set of partitions or not"
     )
     return parser
 

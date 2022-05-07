@@ -4,8 +4,7 @@ from functools import partial
 from luigi.task import flatten
 from luigi import LocalTarget, Task, Target
 
-# from csci_utils.luigi.task import TargetOutput
-from csci_utils_starters.csci_utils_luigi_task import TargetOutput
+from csci_utils.luigi.tasks import TargetOutput
 
 
 class SaltedOutput(TargetOutput):
@@ -23,13 +22,8 @@ class SaltedOutput(TargetOutput):
             **target_kwargs,
         )
 
-    def __get__(self, task: Task, cls):
-        if task is None:
-            return self
-        return partial(self.__call__, task)
-
     def __call__(self, task: Task) -> Target:
-        # modified file pattern to be more the lecture from March 3rd
+        """Upon output being called by luigi, creates the target class with the salted versioning"""
         return self.target_class(
             self.file_pattern.format(task=task, salt=self.get_salted_version(task))
             + self.ext,
@@ -48,8 +42,3 @@ class SaltedOutput(TargetOutput):
 
         salt += task.__class__.__name__ + task.__version__
         return hashlib.sha256(salt.encode()).hexdigest()[:10]
-
-
-# # LocalTarget(file_pattern.format(
-# #         salt=get_salted_version(task)[:6], self=task, **kwargs
-# #     ), format=format)

@@ -12,7 +12,6 @@ pytest-runner = "*"
 luigi = "*"
 fastparquet = "*"
 dask = {extras = ["dataframe"], version = "*"}
-s3fs = "*"
 csci-utils = {editable = true,git = "https://github.com/csci-e-29/2022sp-csci-utils-JuLieAlgebra"}
 
 [requires]

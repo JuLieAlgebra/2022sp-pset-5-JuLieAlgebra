@@ -55,7 +55,7 @@ class AnsP5(answers.Answers):
         task = ByStars()
         ddf = task.get_results()
         ans = {
-            star: int(round(avg_len))
+            star: round(avg_len)
             for star, avg_len in zip(sorted(question.answer.keys()), ddf.avg_len.values)
         }
         return ans
@@ -84,7 +84,7 @@ class AnsP5(answers.Answers):
         task = ByDecade()
         ddf = task.get_results()
         ans = {
-            year: int(round(avg_len))
+            year: round(avg_len)
             for year, avg_len in zip(sorted(question.answer.keys()), ddf.avg_len.values)
         }
         return ans
@@ -106,10 +106,10 @@ class AnsP5(answers.Answers):
         """
         task = ByDay()
         ddf = task.get_results()
-        # print(sorted(question.answer.keys()), ddf.avg_len.values)
-        # print(ddf)
+        # prsorted(question.answer.keys()), ddf.avg_len.values)
+        # prddf)
         ans = {
-            dow: int(round(avg_len))
+            dow: round(avg_len)
             for dow, avg_len in zip(sorted(question.answer.keys()), ddf.avg_len.values)
         }
         return ans
@@ -129,8 +129,6 @@ class SubmitP5(canvas.Submission):
             os.environ.get("LATE_SUBMISSION_DAYS")
         )  # Prevents builds after the submission deadline
 
-        print(self.assignment.due_at_date + timedelta(days=late_days, minutes=30))
-        print(self.assignment.due_at_date)
         if datetime.now(timezone.utc) > (
             self.assignment.due_at_date + timedelta(days=late_days, minutes=30)
         ):

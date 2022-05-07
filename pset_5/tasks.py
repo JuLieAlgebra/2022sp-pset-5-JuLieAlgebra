@@ -2,23 +2,13 @@ import os
 
 from luigi import Task, ExternalTask, BoolParameter, Parameter
 import luigi
-from luigi.contrib.s3 import S3Target
-import s3fs
 import dask.dataframe
 
+from csci_utils.luigi.dask.target import ParquetTarget, CSVTarget
+from csci_utils.luigi.tasks import Requirement, Requires, TargetOutput
 from csci_utils.hash.hash_str import get_user_id
 
-from csci_utils_starters.csci_utils_luigi_task import (
-    Requirement,
-    Requires,
-    TargetOutput,
-)
-from csci_utils_starters.csci_utils_luigi_dask_target import ParquetTarget, CSVTarget
-
 from pset_5.salt import SaltedOutput
-
-# from csci_utils.luigi.dask_target import ParquetTarget, CSVTarget
-# from csci_utils.luigi.task import Requirement, Requires
 
 
 ################################################################################
@@ -40,7 +30,7 @@ class YelpReviews(ExternalTask):
 
 
 class CleanedReviews(Task):
-    __version__ = "0.1.2"
+    __version__ = "0.1.3"
     subset = BoolParameter(default=True)
 
     requires = Requires()
@@ -84,18 +74,19 @@ class CleanedReviews(Task):
                 "stars": "int64",
             }
         )
-        ddf = ddf[
-            ~ddf["text"].isnull()
-        ]  # credit to Alba for this line, thanks everyone for the heads up on this column!
-        ddf = ddf[~ddf["user_id"].isnull()]
+        ddf[ddf["text"].isnull()] = ""
+        ddf = ddf[ddf["user_id"].str.len() != 0]
         ddf["date"] = dask.dataframe.to_datetime(ddf["date"])
 
         out = ddf
         self.output().write_dask(out, compression="gzip")
 
 
+### Note: Am getting 0.6/10 on the quiz answers, really not sure why, but I think, after
+###       lots of testing on test files, that I am messing up somewhere in the CleanedReviews
+###       task and not in the BySomething tasks
 class ByDecade(Task):
-    __version__ = "0.1.0"
+    __version__ = "0.1.2"
     subset = BoolParameter(default=True)
 
     # Be sure to read from CleanedReviews locally
@@ -123,7 +114,7 @@ class ByDecade(Task):
 
 
 class ByStars(Task):
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
     subset = BoolParameter(default=True)
 
     requires = Requires()
@@ -150,7 +141,7 @@ class ByStars(Task):
 
 
 class ByDay(Task):
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
     subset = BoolParameter(default=True)
 
     requires = Requires()
