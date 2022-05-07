@@ -10,25 +10,30 @@ from pset_5 import submission
 def create_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--full", help="Run Luigi debug on full set of partitions or not"
+        "--full",
+        help="Run Luigi debug on full set of partitions or not",
+        action="store_true",
     )
     return parser
 
 
 def subset_flag(parser, args) -> bool:
     """Parse flag for running with full dataset or not"""
-    if parser.parse_args(args).full:
-        return True
-    return False
+    return not parser.parse_args(args).full
 
 
 def main():
+    """
+    Note!! To use full dataset:
+    Usage: pipenv run python -m pset_5 --full
+    """
     arg = subset_flag(create_parse(), sys.argv[1:])
+    tasks.CleanedReviews.subset = luigi.BoolParameter(default=arg)
     luigi.build(
         [
-            tasks.ByStars(subset=arg),
-            tasks.ByDay(subset=arg),
-            tasks.ByDecade(subset=arg),
+            tasks.ByStars(),
+            tasks.ByDay(),
+            tasks.ByDecade(),
         ],
         local_scheduler=True,
     )

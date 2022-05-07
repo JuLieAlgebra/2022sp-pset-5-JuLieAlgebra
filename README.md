@@ -1,14 +1,17 @@
 # Pset 5
 
-[![Test assignment and submit to Canvas](https://github.com/csci-e-29/2022sp-pset-5-JuLieAlgebra/actions/workflows/canvas.yaml/badge.svg?branch=master)](https://github.com/csci-e-29/2022sp-pset-5-JuLieAlgebra/actions/workflows/canvas.yaml)
+[![Test assignment and submit to Canvas](https://github.com/JuLieAlgebra/2022sp-pset-5-JuLieAlgebra/actions/workflows/canvas.yaml/badge.svg)](https://github.com/JuLieAlgebra/2022sp-pset-5-JuLieAlgebra/actions/workflows/canvas.yaml)
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/990ab3ff7dd17e3a202a/maintainability)](https://codeclimate.com/repos/626872670fd5e817ed017244/maintainability)
+[![Maintainability](https://api.codeclimate.com/v1/badges/4235b63e20976b75d7ec/maintainability)](https://codeclimate.com/github/JuLieAlgebra/2022sp-pset-5-JuLieAlgebra/maintainability)
 
-[![Test Coverage](https://api.codeclimate.com/v1/badges/990ab3ff7dd17e3a202a/test_coverage)](https://codeclimate.com/repos/626872670fd5e817ed017244/test_coverage)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/4235b63e20976b75d7ec/test_coverage)](https://codeclimate.com/github/JuLieAlgebra/2022sp-pset-5-JuLieAlgebra/test_coverage)
 
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-I did the SaltedOutput extra credit in pset_5/salt.py :)
+I did the SaltedOutput extra credit in pset_5/salt.py, and please note that the cli is configured to run the full partition with:
+`pipenv run python -m pset_5 --full`
+
+Github Actions also got locked around May 4, just after the original pset deadline, so this was my workaround, which is public as of May 7th, 2pm, so no one else should still have been working on the pset at that time (using all three of my remaining late days).
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->

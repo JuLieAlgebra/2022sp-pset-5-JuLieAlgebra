@@ -13,6 +13,7 @@ luigi = "*"
 fastparquet = "*"
 dask = {extras = ["dataframe"], version = "*"}
 csci-utils = {editable = true,git = "https://github.com/csci-e-29/2022sp-csci-utils-JuLieAlgebra"}
+pipfile = "*"
 
 [requires]
 python_version = "3.8"

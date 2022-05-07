@@ -30,7 +30,10 @@ class YelpReviews(ExternalTask):
 
 
 class CleanedReviews(Task):
-    __version__ = "0.1.5"
+    """From S3 bucket, read in data as dask CSVTarget dataframe, filter bad data as in
+    README, then write to disk"""
+
+    __version__ = "0.1.6"
     subset = BoolParameter(default=True)
 
     requires = Requires()
@@ -63,7 +66,6 @@ class CleanedReviews(Task):
             ddf[col] = ddf[col].fillna(0)
 
         # should cover null user_id values and no others, since all the nans were filled in the numeric columns
-        ddf = ddf.dropna(subset=numeric_cols)
         ddf = ddf[ddf["review_id"].str.len() == 22]
         ddf = ddf.set_index("review_id")
         ddf = ddf.astype(
@@ -74,21 +76,18 @@ class CleanedReviews(Task):
                 "stars": "int64",
             }
         )
-        ddf.dropna(subset=["text"])
-        # ddf[ddf["text"].isnull()] = ""
-        ddf = ddf[ddf["user_id"].str.len() != 0]
+        ddf = ddf[~ddf["text"].isnull()]
+        ddf = ddf[~ddf["user_id"].isnull()]
         ddf["date"] = dask.dataframe.to_datetime(ddf["date"])
 
         out = ddf
         self.output().write_dask(out, compression="gzip")
 
 
-### Note: Am getting 0.6/10 on the quiz answers, really not sure why, but I think, after
-###       lots of testing on test files, that I am messing up somewhere in the CleanedReviews
-###       task and not in the BySomething tasks
 class ByDecade(Task):
-    __version__ = "0.1.2"
-    subset = BoolParameter(default=True)
+    """Luigi task for answering a quiz question based on CleanedReviews data"""
+
+    __version__ = "0.1.3"
 
     # Be sure to read from CleanedReviews locally
     path = os.path.join("data", "{task.__class__.__name__}-{salt}")
@@ -97,7 +96,7 @@ class ByDecade(Task):
     )
 
     requires = Requires()
-    other = Requirement(CleanedReviews, subset=subset)
+    other = Requirement(CleanedReviews)
 
     def run(self):
         """Return the average (rounded to int) length of review by year"""
@@ -115,11 +114,12 @@ class ByDecade(Task):
 
 
 class ByStars(Task):
-    __version__ = "0.1.1"
-    subset = BoolParameter(default=True)
+    """Luigi task for answering a quiz question based on CleanedReviews data"""
+
+    __version__ = "0.1.3"
 
     requires = Requires()
-    other = Requirement(CleanedReviews, subset=subset)
+    other = Requirement(CleanedReviews)
 
     path = os.path.join("data", "{task.__class__.__name__}-{salt}")
     output = SaltedOutput(
@@ -142,11 +142,12 @@ class ByStars(Task):
 
 
 class ByDay(Task):
-    __version__ = "0.1.1"
-    subset = BoolParameter(default=True)
+    """Luigi task for answering a quiz question based on CleanedReviews data"""
+
+    __version__ = "0.1.2"
 
     requires = Requires()
-    other = Requirement(CleanedReviews, subset=subset)
+    other = Requirement(CleanedReviews)
 
     path = os.path.join("data", "{task.__class__.__name__}-{salt}")
     output = SaltedOutput(
