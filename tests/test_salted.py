@@ -7,7 +7,10 @@ from pset_5 import salt
 
 
 class SaltedTests(TestCase):
+    """Tests that the SaltedOutput extra credit works as intended"""
+
     def test_salted_tasks(self):
+        """Tests that SaltedOutput writes a file with the pattern and class expected"""
         with TemporaryDirectory() as tmp:
 
             class SomeTask(luigi.Task):
@@ -20,34 +23,42 @@ class SaltedTests(TestCase):
                         out.write("Test")
 
             task = SomeTask()
-            task.output()
-            print(task.output())
-            # assert os.path.exists(os.path.join(tmp, pattern))
+            outfile = task.output()
+            assert isinstance(outfile, luigi.local_target.LocalTarget)
+            assert outfile.path[:-15] == os.path.join(tmp, "SomeTask")
 
     def test_salted(self):
-        """Tests basic functionality and that changing parameters
+        """Tests basic functionality and that changing versions
         results in new salt"""
         with TemporaryDirectory() as tmp:
 
             class Requirement(luigi.Task):
                 __version__ = "1.0"
 
-                def output(self):
-                    return luigi.LocalTarget("requirement.txt")
+                pattern = "{task.__class__.__name__}-{salt}"
+                output = salt.SaltedOutput(file_pattern=os.path.join(tmp, pattern))
+
+                def run(self):
+                    with self.output().open("w") as out:
+                        out.write("Test")
 
             class myTask(luigi.Task):
                 __version__ = "1.0"
                 param = luigi.Parameter()
 
-                def output(self):
-                    return luigi.LocalTarget("test.txt")
+                pattern = "{task.__class__.__name__}-{salt}"
+                output = salt.SaltedOutput(file_pattern=os.path.join(tmp, pattern))
+
+                def run(self):
+                    with self.output().open("w") as out:
+                        out.write("Test")
 
                 def requires(self):
                     return Requirement()
 
-            # task = myTask("arg")
-            # salt_word = salt.get_salted_version(task)
-            # task.__version__ = "1.1"
-            # salt_update = salt_word.get_salted_version(task)
+            task = myTask("arg")
+            outfile = task.output()
+            task.__version__ = "1.1"
+            update_outfile = task.output()
 
-            # assert salt_word != salt_update
+            assert outfile != update_outfile
